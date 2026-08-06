@@ -10,4 +10,4 @@ board[0][0]=chess_defs.Block(terrain=chess_defs.Terrain.PLAIN,
                              piece=chess_defs.Piece(owner=chess_defs.Owner.A,
                                                     type=chess_defs.PieceType.COMMANDER))
 
-print(board[0][0].piece.owner)
+print(board[0][0].piece.type.icon)
