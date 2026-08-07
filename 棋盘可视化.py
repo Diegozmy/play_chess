@@ -39,14 +39,15 @@ Icons={ow:{
 }
 
 #放置棋子
-for ow in chess_defs.Owner:
-    for pt in chess_defs.PieceType:
-        board[ow.value][pt.value] = chess_defs.Block(terrain=chess_defs.Terrain(randint(0,3)),
-                                       piece=chess_defs.Piece(owner=ow,
-                                                              type=pt),
+board[0][0] = chess_defs.Block(terrain=chess_defs.Terrain(randint(0,3)),
+                                       piece=chess_defs.Piece(owner=chess_defs.Owner.A,
+                                                              type=chess_defs.PieceType.COMMANDER,
+                                                              viewed=False
+                                                              ),
                                        trap_owner=chess_defs.TrapOwner.NONE
                                        )
 
+viewer=chess_defs.Owner.A
 #绘制过程
 running = True
 while running:
@@ -72,8 +73,12 @@ while running:
                              (x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 1, CELL_SIZE - 1))
             #绘制棋子
             if block.piece is not None:
-                screen.blit(Icons[block.piece.owner][block.piece.type],
-                            (x * CELL_SIZE + 3, y * CELL_SIZE + 3))
+                if block.piece.owner == viewer or block.piece.viewed:
+                    screen.blit(Icons[block.piece.owner][block.piece.type],
+                                (x * CELL_SIZE + 3, y * CELL_SIZE + 3))
+                else:
+                    screen.blit(Icons[block.piece.owner][chess_defs.PieceType.UNKNOWN],
+                                (x * CELL_SIZE + 3, y * CELL_SIZE + 3))
 
     pygame.display.flip()
     clock.tick(60)

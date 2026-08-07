@@ -22,6 +22,7 @@ class PieceType(Enum):
 class Piece:
     owner: Owner
     type: PieceType
+    viewed: bool
 
 #4. 定义地形
 class Terrain(Enum):
