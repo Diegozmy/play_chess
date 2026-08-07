@@ -8,20 +8,14 @@ class Owner(Enum):
 
 # 2. 定义棋子类型(包含图标)
 class PieceType(Enum):
-    KNIGHT = (1, "♞")
-    ASSASSIN = (2, "🗡")
-    SHIELD = (3, "🛡")
-    ARCHER = (4, "🏹")
-    MAGE = (5, "🔮")
-    HUNTER = (6, "🕸")
-    COMMANDER = (7, "👑")
-
-    def __new__(cls, value, icon):
-        obj = object.__new__(cls)
-        obj._value_ = value
-        obj.icon = icon
-        return obj
-
+    KNIGHT = 1
+    ASSASSIN = 2
+    SHIELD = 3
+    ARCHER = 4
+    MAGE = 5
+    HUNTER = 6
+    COMMANDER = 7
+    UNKNOWN = 8
 
 # 3. 定义棋子结构
 @dataclass(slots=True, frozen=True, kw_only=True)
