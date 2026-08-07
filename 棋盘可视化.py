@@ -34,7 +34,7 @@ ColorsPiece={
 
 Icons={ow:{
             pt : pygame.transform.scale(
-                pygame.image.load(f"./chessIco/{ow.value}/{pt.value}.png").convert_alpha(),
+                pygame.image.load(f"./chessIco/{ow.value}/{pt.value}.png").convert(),
                 (CELL_SIZE-5, CELL_SIZE-5)
             )
             for pt in chess_defs.PieceType
