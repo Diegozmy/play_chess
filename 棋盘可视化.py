@@ -3,15 +3,21 @@ import pygame
 import sys
 from random import randint
 
-
+#格子大小
 CELL_SIZE = 55
 
+#地形数据
+cols_with_rivers = [0,1,2,4,5,6,10,11,12,14,15,16]
+rivers=[(row,col) for col in cols_with_rivers for row in range(7,10)]
+cols_with_bridges = [3,7,8,9,13]
+bridges=[(row,col) for col in cols_with_bridges for row in range(7,10)]
+grasses = [(row,col) for col in cols_with_rivers for row in [6,10]]
+grasses.extend([(row,col) for col in [1,5,11,15] for row in [5,11]])
+grasses.extend([(row, col) for col in [6,10] for row in [0,1,2,16,15,14]])
+grasses.extend([(row, col) for col in [7,8,9] for row in [3,13]])
 
 #决定初始地形
 def determine_terrain(pos:tuple[int, int])->chess_defs.Terrain:
-    grasses=[(0,0)]
-    rivers=[(1,1)]
-    bridges=[(2,2)]
     if pos in grasses:
         return chess_defs.Terrain.GRASS
     if pos in rivers:
