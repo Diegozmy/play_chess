@@ -1,12 +1,15 @@
 import chess_defs
 import pygame
 import sys
-
+from random import randint
 CELL_SIZE = 55
 
 #创建一个 17x17 的空棋盘
 board: list[list[chess_defs.Block]] = [
-    [chess_defs.Block(terrain=chess_defs.Terrain.PLAIN, piece=None,trap_owner=chess_defs.TrapOwner.NONE) for _ in range(17)]
+    [chess_defs.Block(terrain=chess_defs.Terrain.PLAIN,
+                      piece=None,
+                      trap_owner=chess_defs.TrapOwner.NONE)
+        for _ in range(17)]
     for _ in range(17)
 ]
 
@@ -16,6 +19,7 @@ screen = pygame.display.set_mode((CELL_SIZE*17, CELL_SIZE*17))
 pygame.display.set_caption("17x17 网格")
 clock = pygame.time.Clock()
 
+#地形颜色
 ColorsTerrain={
             chess_defs.Terrain.PLAIN:(218, 215, 170),
             chess_defs.Terrain.GRASS:(86, 124, 27),
@@ -23,6 +27,7 @@ ColorsTerrain={
             chess_defs.Terrain.BRIDGE:(100, 55, 25)
         }
 
+#棋子颜色
 Icons={ow:{
             pt : pygame.transform.scale(
                 pygame.image.load(f"./chessIco/{ow.value}/{pt.value}.png").convert(),
@@ -33,14 +38,16 @@ Icons={ow:{
        for ow in chess_defs.Owner
 }
 
+#放置棋子
+for ow in chess_defs.Owner:
+    for pt in chess_defs.PieceType:
+        board[ow.value][pt.value] = chess_defs.Block(terrain=chess_defs.Terrain(randint(0,3)),
+                                       piece=chess_defs.Piece(owner=ow,
+                                                              type=pt),
+                                       trap_owner=chess_defs.TrapOwner.NONE
+                                       )
 
-
-board[0][0]=chess_defs.Block(terrain=chess_defs.Terrain.PLAIN,
-                             piece=chess_defs.Piece(owner=chess_defs.Owner.B,
-                                                    type=chess_defs.PieceType.KNIGHT),
-                             trap_owner=chess_defs.TrapOwner.NONE
-                             )
-
+#绘制过程
 running = True
 while running:
     for event in pygame.event.get():
