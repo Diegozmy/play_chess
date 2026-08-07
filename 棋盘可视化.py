@@ -20,18 +20,26 @@ board[0][0]=chess_defs.Block(terrain=chess_defs.Terrain.PLAIN,
                              piece=chess_defs.Piece(owner=chess_defs.Owner.B,
                                                     type=chess_defs.PieceType.KNIGHT))
 
-Colors={
+ColorsTerrain={
             chess_defs.Terrain.PLAIN:(218, 215, 170),
             chess_defs.Terrain.GRASS:(86, 124, 27),
             chess_defs.Terrain.RIVER:(156, 178, 206),
             chess_defs.Terrain.BRIDGE:(100, 55, 25)
         }
 
-Icons={
-    chess_defs.Owner.A:[pygame.transform.scale(pygame.image.load(f"./chessIco/-1/{i}.PNG").convert(), (CELL_SIZE-5, CELL_SIZE-5))
-                        for i in range(1,9)],
-    chess_defs.Owner.B:[pygame.transform.scale(pygame.image.load(f"./chessIco/1/{i}.PNG").convert(), (CELL_SIZE-5, CELL_SIZE-5))
-                        for i in range(1,9)]
+ColorsPiece={
+    chess_defs.Owner.A:(0, 0, 255),
+    chess_defs.Owner.B:(255, 0, 0),
+}
+
+Icons={ow:{
+            pt : pygame.transform.scale(
+                pygame.image.load(f"./chessIco/{ow.value}/{pt.value}.png").convert_alpha(),
+                (CELL_SIZE-5, CELL_SIZE-5)
+            )
+            for pt in chess_defs.PieceType
+            }
+       for ow in chess_defs.Owner
 }
 
 running = True
@@ -51,12 +59,13 @@ while running:
 
     for x in range(17):
         for y in range(17):
+            block = board[x][y]
             #绘制地形
-            pygame.draw.rect(screen, Colors[board[x][y].terrain],
+            pygame.draw.rect(screen, ColorsTerrain[block.terrain],
                              (x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 1, CELL_SIZE - 1))
             #绘制棋子
-            if board[x][y].piece is not None:
-                screen.blit(Icons[board[x][y].piece.owner][board[x][y].piece.type.value - 1],
+            if block.piece is not None:
+                screen.blit(Icons[block.piece.owner][block.piece.type],
                             (x * CELL_SIZE + 3, y * CELL_SIZE + 3))
 
     pygame.display.flip()
