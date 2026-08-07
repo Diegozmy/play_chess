@@ -6,7 +6,7 @@ CELL_SIZE = 55
 
 #创建一个 17x17 的空棋盘
 board: list[list[chess_defs.Block]] = [
-    [chess_defs.Block(terrain=chess_defs.Terrain.PLAIN, piece=None) for _ in range(17)]
+    [chess_defs.Block(terrain=chess_defs.Terrain.PLAIN, piece=None,trap_owner=chess_defs.TrapOwner.NONE) for _ in range(17)]
     for _ in range(17)
 ]
 
@@ -16,21 +16,12 @@ screen = pygame.display.set_mode((CELL_SIZE*17, CELL_SIZE*17))
 pygame.display.set_caption("17x17 网格")
 clock = pygame.time.Clock()
 
-board[0][0]=chess_defs.Block(terrain=chess_defs.Terrain.PLAIN,
-                             piece=chess_defs.Piece(owner=chess_defs.Owner.B,
-                                                    type=chess_defs.PieceType.KNIGHT))
-
 ColorsTerrain={
             chess_defs.Terrain.PLAIN:(218, 215, 170),
             chess_defs.Terrain.GRASS:(86, 124, 27),
             chess_defs.Terrain.RIVER:(156, 178, 206),
             chess_defs.Terrain.BRIDGE:(100, 55, 25)
         }
-
-ColorsPiece={
-    chess_defs.Owner.A:(0, 0, 255),
-    chess_defs.Owner.B:(255, 0, 0),
-}
 
 Icons={ow:{
             pt : pygame.transform.scale(
@@ -42,11 +33,20 @@ Icons={ow:{
        for ow in chess_defs.Owner
 }
 
+
+
+board[0][0]=chess_defs.Block(terrain=chess_defs.Terrain.PLAIN,
+                             piece=chess_defs.Piece(owner=chess_defs.Owner.B,
+                                                    type=chess_defs.PieceType.KNIGHT),
+                             trap_owner=chess_defs.TrapOwner.NONE
+                             )
+
 running = True
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+
     #填充背景
     screen.fill((255,255,255))
 
@@ -56,7 +56,7 @@ while running:
         pygame.draw.line(screen, (0,0,0), (pos, 0), (pos, CELL_SIZE*17))
         pygame.draw.line(screen, (0,0,0), (0, pos), (CELL_SIZE*17, pos))
 
-
+    #绘制棋盘
     for x in range(17):
         for y in range(17):
             block = board[x][y]

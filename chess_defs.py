@@ -1,12 +1,12 @@
-from enum import Enum
+from enum import Enum,IntFlag
 from dataclasses import dataclass
 
 # 1. 定义棋子归属
 class Owner(Enum):
-    A = -1
-    B = 1
+    A = 1
+    B = 2
 
-# 2. 定义棋子类型(包含图标)
+# 2. 定义棋子类型
 class PieceType(Enum):
     KNIGHT = 1
     ASSASSIN = 2
@@ -30,8 +30,15 @@ class Terrain(Enum):
     RIVER = 2
     BRIDGE=3
 
-#5. 定义格子
+#5.定义陷阱归属
+class TrapOwner(IntFlag):
+    NONE = 0
+    A = 1
+    B = 2
+
+#6. 定义格子
 @dataclass(slots=True, frozen=True, kw_only=True)
 class Block:
     terrain: Terrain
     piece: Piece | None
+    trap_owner: TrapOwner
