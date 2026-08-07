@@ -2,16 +2,34 @@ import chess_defs
 import pygame
 import sys
 from random import randint
+
+
 CELL_SIZE = 55
+
+
+#决定初始地形
+def determine_terrain(pos:tuple[int, int])->chess_defs.Terrain:
+    grasses=[(0,0)]
+    rivers=[(1,1)]
+    bridges=[(2,2)]
+    if pos in grasses:
+        return chess_defs.Terrain.GRASS
+    if pos in rivers:
+        return chess_defs.Terrain.RIVER
+    if pos in bridges:
+        return chess_defs.Terrain.BRIDGE
+    return chess_defs.Terrain.PLAIN
+
 
 #创建一个 17x17 的空棋盘
 board: list[list[chess_defs.Block]] = [
-    [chess_defs.Block(terrain=chess_defs.Terrain.PLAIN,
+    [chess_defs.Block(terrain=determine_terrain((x,y)),
                       piece=None,
                       trap_owner=chess_defs.TrapOwner.NONE)
-        for _ in range(17)]
-    for _ in range(17)
+        for x in range(17)]
+    for y in range(17)
 ]
+
 
 # 初始化
 pygame.init()
@@ -47,7 +65,7 @@ board[0][0] = chess_defs.Block(terrain=chess_defs.Terrain(randint(0,3)),
                                        trap_owner=chess_defs.TrapOwner.NONE
                                        )
 
-viewer=chess_defs.Owner.A
+viewer=chess_defs.Owner.B #定义观察者
 #绘制过程
 running = True
 while running:
@@ -73,7 +91,7 @@ while running:
                              (x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 1, CELL_SIZE - 1))
             #绘制棋子
             if block.piece is not None:
-                if block.piece.owner == viewer or block.piece.viewed:
+                if block.piece.owner == viewer or block.piece.viewed: #只显示自己的或已翻面的棋子
                     screen.blit(Icons[block.piece.owner][block.piece.type],
                                 (x * CELL_SIZE + 3, y * CELL_SIZE + 3))
                 else:
