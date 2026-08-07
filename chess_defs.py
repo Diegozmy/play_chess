@@ -25,10 +25,10 @@ class Piece:
 
 #4. 定义地形
 class Terrain(Enum):
-    PLAIN=1
-    GRASS=2
+    PLAIN=0
+    GRASS=1
+    RIVER = 2
     BRIDGE=3
-    RIVER=4
 
 #5. 定义格子
 @dataclass(slots=True, frozen=True, kw_only=True)
