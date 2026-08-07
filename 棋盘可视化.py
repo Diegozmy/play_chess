@@ -16,6 +16,10 @@ screen = pygame.display.set_mode((CELL_SIZE*17, CELL_SIZE*17))
 pygame.display.set_caption("17x17 网格")
 clock = pygame.time.Clock()
 
+board[0][0]=chess_defs.Block(terrain=chess_defs.Terrain.PLAIN,
+                             piece=chess_defs.Piece(owner=chess_defs.Owner.A,
+                                                    type=chess_defs.PieceType.COMMANDER))
+
 
 running = True
 while running:
