@@ -225,4 +225,4 @@ def get_valid_moves(board:list[list[chess_defs.Block]],pos:tuple[int,int],viewer
 
     return None
 
-
+#获取弓手的合法目标

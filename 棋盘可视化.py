@@ -85,17 +85,6 @@ board[8][12]=chess_defs.Block(terrain=chess_defs.Terrain.PLAIN,
                                        )
 
 
-
-
-
-
-
-
-
-
-
-
-
 viewer=chess_defs.Owner.A #定义观察者
 #绘制过程
 running = True
