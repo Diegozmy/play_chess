@@ -22,6 +22,7 @@ class PieceType(Enum):
 class Piece:
     owner: Owner
     type: PieceType
+    stealth: None | int
     viewed: bool
 
 #4. 定义地形
