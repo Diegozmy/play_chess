@@ -4,6 +4,7 @@ import sys
 
 #格子大小
 CELL_SIZE = 55
+now_round=2
 
 #地形数据
 cols_with_rivers = [0,1,2,4,5,6,10,11,12,14,15,16]
@@ -90,8 +91,41 @@ for i in range(3):
                                        trap_owner=chess_defs.TrapOwner.NONE
                                        )
 
+#获取可行移动
+directions=[(0,1),(-1,1),(-1,0),(-1,-1),(0,-1),(1,-1),(1,0),(1,1)]
+def get_valid_moves(pos:tuple[int,int],viewer:chess_defs.Owner) -> set[tuple[int,int]] | None:
+    piece=board[pos[0]][pos[1]].piece
+    if not piece:
+        return None
+    if piece.owner != viewer:
+        return None
+    if piece.type == chess_defs.PieceType.KNIGHT:
+        steps=9
+        result: set[tuple[int, int]] = set()
+        for direction in directions:
+            end_pos=pos
+            for _ in range(steps):
+                end_pos = (end_pos[0] + direction[0], end_pos[1] + direction[1])
+                if end_pos[0] < 0 or end_pos[0] > 16 or end_pos[1] < 0 or end_pos[1] > 16:
+                    break # 目标不在棋盘内
+                if now_round==1 and board[end_pos[0]][end_pos[1]].terrain == chess_defs.Terrain.BRIDGE:
+                    break # 第一回合不能上桥
+                if board[end_pos[0]][end_pos[1]].terrain == chess_defs.Terrain.RIVER:
+                    break # 不能进河流
+                end_piece = board[end_pos[0]][end_pos[1]].piece
+                if end_piece is not None:
+                    if end_piece.owner == viewer:
+                        break # 不能吃自己的棋子
+                    else:
+                        result.add(end_pos) # 吃掉对方棋子
+                        break # 然后停下
+                result.add(end_pos)
+        return result
 
-viewer=chess_defs.Owner.B #定义观察者
+
+
+
+viewer=chess_defs.Owner.A #定义观察者
 #绘制过程
 running = True
 while running:
@@ -123,6 +157,11 @@ while running:
                 else:
                     screen.blit(Icons[block.piece.owner][chess_defs.PieceType.UNKNOWN],
                                 (x * CELL_SIZE + 3, y * CELL_SIZE + 3))
+
+
+    for x,y in get_valid_moves((7, 2), chess_defs.Owner.A):
+        pygame.draw.rect(screen, (255,255,255),
+                                 (x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 1, CELL_SIZE - 1))
 
     pygame.display.flip()
     clock.tick(60)
