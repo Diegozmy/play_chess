@@ -1,7 +1,6 @@
 import chess_defs
 import pygame
 import sys
-from random import randint
 
 #格子大小
 CELL_SIZE = 55
@@ -63,13 +62,34 @@ Icons={ow:{
 }
 
 #放置棋子
-board[0][0] = chess_defs.Block(terrain=chess_defs.Terrain(randint(0,3)),
+chess_place=[
+             [chess_defs.PieceType.MAGE,chess_defs.PieceType.COMMANDER,chess_defs.PieceType.HUNTER],
+             [chess_defs.PieceType.ARCHER,chess_defs.PieceType.ASSASSIN,chess_defs.PieceType.ARCHER],
+             [chess_defs.PieceType.KNIGHT,chess_defs.PieceType.SHIELD,chess_defs.PieceType.KNIGHT]
+             ]
+
+
+for i in range(3):
+    for j in range(3):
+        board[j+7][i]=chess_defs.Block(terrain=chess_defs.Terrain.PLAIN,
                                        piece=chess_defs.Piece(owner=chess_defs.Owner.A,
-                                                              type=chess_defs.PieceType.COMMANDER,
+                                                              type=chess_place[i][j],
                                                               viewed=False
                                                               ),
                                        trap_owner=chess_defs.TrapOwner.NONE
                                        )
+
+
+for i in range(3):
+    for j in range(3):
+        board[j+7][i+14]=chess_defs.Block(terrain=chess_defs.Terrain.PLAIN,
+                                       piece=chess_defs.Piece(owner=chess_defs.Owner.B,
+                                                              type=chess_place[2-i][j],
+                                                              viewed=False
+                                                              ),
+                                       trap_owner=chess_defs.TrapOwner.NONE
+                                       )
+
 
 viewer=chess_defs.Owner.B #定义观察者
 #绘制过程
