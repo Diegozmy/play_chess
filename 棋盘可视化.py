@@ -103,11 +103,11 @@ for i in range(3):
                                        trap_owner=chess_defs.TrapOwner.NONE
                                        )
 
-board[0][2]=chess_defs.Block(terrain=chess_defs.Terrain.PLAIN,
+board[8][10]=chess_defs.Block(terrain=chess_defs.Terrain.PLAIN,
                                        piece=chess_defs.Piece(owner=chess_defs.Owner.A,
                                                               type=chess_defs.PieceType.ASSASSIN,
                                                               viewed=False,
-                                                              stealth=1
+                                                              stealth=4
                                                               ),
                                        trap_owner=chess_defs.TrapOwner.NONE
                                        )
@@ -185,7 +185,10 @@ def get_valid_moves(pos:tuple[int,int],viewer:chess_defs.Owner) -> set[tuple[int
                     result.add(new_pos)
                     continue
 
-                if remain_moves > 0 or board[end_pos[0]][end_pos[1]].terrain == chess_defs.Terrain.GRASS and remain_stealth > 0:
+                if (remain_moves > 0
+                        or (board[end_pos[0]][end_pos[1]].terrain == chess_defs.Terrain.GRASS
+                        and remain_stealth > 0)
+                    ):
                     result.add(new_pos)
                 else:
                     continue
@@ -203,6 +206,108 @@ def get_valid_moves(pos:tuple[int,int],viewer:chess_defs.Owner) -> set[tuple[int
                         q.append(new_state)
 
         return result
+
+    if (piece.type == chess_defs.PieceType.SHIELD
+            or piece.type == chess_defs.PieceType.HUNTER
+            or piece.type == chess_defs.PieceType.COMMANDER):
+        if piece.type == chess_defs.PieceType.SHIELD:
+            steps = 2
+        else:
+            steps = 3
+        q = deque()
+        visited = set()
+        init_state = (pos, steps)  # (当前位置, 剩余步数, 剩余潜伏值)
+        q.append(init_state)
+        visited.add(init_state)
+
+        while q:
+            end_pos, remain_moves= q.popleft()
+
+            if remain_moves == 0:
+                continue
+
+            for direction in directions:
+                new_pos = (end_pos[0] + direction[0], end_pos[1] + direction[1])
+                # 边界检查
+                if new_pos[0] < 0 or new_pos[0] > 16 or new_pos[1] < 0 or new_pos[1] > 16:
+                    continue
+
+                target_block = board[new_pos[0]][new_pos[1]]
+                terrain = target_block.terrain
+                if terrain == chess_defs.Terrain.RIVER:
+                    continue
+                if now_round == 1 and terrain == chess_defs.Terrain.BRIDGE:
+                    continue
+
+                target_piece = target_block.piece
+                if target_piece is not None and target_piece.owner == viewer:
+                    continue
+                if target_piece is not None and target_piece.owner != viewer:
+                    result.add(new_pos)
+                    continue
+
+                if remain_moves > 0:
+                    result.add(new_pos)
+                else:
+                    continue
+
+                if remain_moves > 0:
+                    new_state = (new_pos, remain_moves - 1)
+                    if new_state not in visited:
+                        visited.add(new_state)
+                        q.append(new_state)
+
+        return result
+
+    if (piece.type == chess_defs.PieceType.ARCHER
+            or piece.type == chess_defs.PieceType.MAGE):
+        if piece.type == chess_defs.PieceType.MAGE:
+            steps = 2
+        else:
+            steps = 3
+        q = deque()
+        visited = set()
+        init_state = (pos, steps)  # (当前位置, 剩余步数, 剩余潜伏值)
+        q.append(init_state)
+        visited.add(init_state)
+
+        while q:
+            end_pos, remain_moves= q.popleft()
+
+            if remain_moves == 0:
+                continue
+
+            for direction in directions:
+                new_pos = (end_pos[0] + direction[0], end_pos[1] + direction[1])
+                # 边界检查
+                if new_pos[0] < 0 or new_pos[0] > 16 or new_pos[1] < 0 or new_pos[1] > 16:
+                    continue
+
+                target_block = board[new_pos[0]][new_pos[1]]
+                terrain = target_block.terrain
+                if terrain == chess_defs.Terrain.RIVER:
+                    continue
+                if now_round == 1 and terrain == chess_defs.Terrain.BRIDGE:
+                    continue
+
+                target_piece = target_block.piece
+                if target_piece is not None:
+                    continue
+
+                if remain_moves > 0:
+                    result.add(new_pos)
+                else:
+                    continue
+
+                if remain_moves > 0:
+                    new_state = (new_pos, remain_moves - 1)
+                    if new_state not in visited:
+                        visited.add(new_state)
+                        q.append(new_state)
+
+        return result
+
+    return None
 
 
 
@@ -244,7 +349,7 @@ while running:
                                 (x * CELL_SIZE + 3, y * CELL_SIZE + 3))
 
 
-    for x,y in get_valid_moves((0, 2), chess_defs.Owner.A):
+    for x,y in get_valid_moves((8, 2), chess_defs.Owner.A):
         pygame.draw.rect(screen, (255,255,255),
                                  (x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 1, CELL_SIZE - 1))
 
