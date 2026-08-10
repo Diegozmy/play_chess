@@ -77,7 +77,7 @@ for i in range(3):
 
 board[7][13]=chess_defs.Block(terrain=chess_defs.Terrain.PLAIN,
                                        piece=chess_defs.Piece(owner=chess_defs.Owner.A,
-                                                              type=chess_defs.PieceType.HUNTER,
+                                                              type=chess_defs.PieceType.COMMANDER,
                                                               viewed=False,
                                                               stealth=4
                                                               ),
@@ -119,9 +119,10 @@ while running:
                                 (x * CELL_SIZE + 3, y * CELL_SIZE + 3))
 
 
-    for x,y in game_engine.get_hunter_targets(board,(7,13),chess_defs.Owner.A):
-        pygame.draw.rect(screen, (255,255,255),
-                                 (x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 1, CELL_SIZE - 1))
+    for i in game_engine.get_valid_moves(board, (7, 13), chess_defs.Owner.A, 1):
+        for x, y in i:
+            pygame.draw.rect(screen, (255, 255, 255),
+                             (x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 1, CELL_SIZE - 1))
 
     pygame.display.flip()
     clock.tick(60)

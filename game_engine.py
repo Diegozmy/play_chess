@@ -1,5 +1,38 @@
 import chess_defs
 from collections import deque
+from enum import Enum
+from dataclasses import dataclass, field, replace
+
+
+#定义游戏状态
+@dataclass(slots=True, kw_only=True)
+class GameState:
+    board: list[list[chess_defs.Block]]
+    now_round: int
+    current_player:chess_defs.Owner
+    flag_capture_count: dict[chess_defs.Owner, int] = field(default_factory=lambda: {chess_defs.Owner.A: 0, chess_defs.Owner.B: 0})
+    trap_count: dict[chess_defs.Owner, int] = field(default_factory=lambda: {chess_defs.Owner.A: 0, chess_defs.Owner.B: 0})
+    died_pieces:dict[chess_defs.Owner, list[chess_defs.Piece]]=field(default_factory=lambda: {chess_defs.Owner.A: [], chess_defs.Owner.B: []})
+
+#定义动作类型
+class ActionType(Enum):
+    MOVE=1
+    SKILL=2
+
+#定义动作
+@dataclass(slots=True, frozen=True, kw_only=True)
+class Action:
+    type: ActionType
+    start: tuple[int, int]
+    target:list[tuple[int, int]]
+
+
+def replace_in_2d(board, row, col, new_value):
+    # 复制外层列表（每一行都是独立的新列表）
+    new_board = [row[:] for row in board]
+    # 修改目标位置
+    new_board[row][col] = new_value
+    return new_board
 
 #初始化棋盘
 def init_board()->list[list[chess_defs.Block]]:
@@ -309,3 +342,30 @@ def get_hunter_targets(board:list[list[chess_defs.Block]],pos:tuple[int,int],vie
             result.add(end_pos)
         return result
 
+#施加动作
+def apply_action(state:GameState,action:Action) -> GameState:
+    block=state.board[action.start[0]][action.start[1]]
+    if block.piece is None or block.piece.owner != state.current_player:
+        raise ValueError("WRONG PIECE!")
+    if action.type == ActionType.MOVE:
+        valid_paths = get_valid_moves(
+            state.board, action.start, state.current_player, state.now_round
+        )
+        if valid_paths is None or action.target not in valid_paths:
+            raise ValueError("Invalid move path")
+        new_block=replace(block,piece=None)
+        board=replace_in_2d(state.board,action.start[0],action.start[1],new_block)
+        end_pos=action.target[-1]
+        if state.board[end_pos[0]][end_pos[1]].piece is not None:
+            new_died_pieces = {owner: list(pieces) for owner, pieces in state.died_pieces.items()}
+            new_died_pieces[state.board[end_pos[0]][end_pos[1]].piece.owner].append(state.board[end_pos[0]][end_pos[1]].piece)
+            new_state1=replace(state, died_pieces=new_died_pieces)
+        else:
+            new_state1=state
+        new_block2 = replace(state.board[end_pos[0]][end_pos[1]], piece=block.piece)
+        board = replace_in_2d(board, end_pos[0], end_pos[1], new_block2)
+        new_game_status=replace(new_state1,board=board)
+        return new_game_status
+    else:
+        # 处理技能或未知动作
+        raise NotImplementedError("Only MOVE action is currently supported")
