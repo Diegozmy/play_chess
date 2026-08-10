@@ -253,3 +253,29 @@ def get_archer_targets(board:list[list[chess_defs.Block]],pos:tuple[int,int],vie
                     break
 
         return result
+
+#获取法师的合法目标
+def get_mage_targets(board:list[list[chess_defs.Block]],pos:tuple[int,int],viewer:chess_defs.Owner) -> list[set[tuple[int,int]]] | None:
+    piece = board[pos[0]][pos[1]].piece
+    if not piece:
+        return None
+    if piece.owner != viewer:
+        return None
+    if piece.type != chess_defs.PieceType.MAGE:
+        return None
+    final_result: list[set[tuple[int, int]]] = list()
+    steps=3
+    for direction in directions:
+        result: set[tuple[int, int]]=set()
+        end_pos = pos
+        for _ in range(steps):
+            end_pos = (end_pos[0] + direction[0], end_pos[1] + direction[1])
+            if end_pos[0] < 0 or end_pos[0] > 16 or end_pos[1] < 0 or end_pos[1] > 16:
+                break  # 目标不在棋盘内
+            end_piece = board[end_pos[0]][end_pos[1]].piece
+            if end_piece is not None:
+                result.add(end_pos)
+                if end_piece.type==chess_defs.PieceType.SHIELD:
+                    break
+        final_result.append(result)
+    return final_result
