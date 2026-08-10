@@ -226,3 +226,30 @@ def get_valid_moves(board:list[list[chess_defs.Block]],pos:tuple[int,int],viewer
     return None
 
 #获取弓手的合法目标
+def get_archer_targets(board:list[list[chess_defs.Block]],pos:tuple[int,int],viewer:chess_defs.Owner) -> set[tuple[int,int]] | None:
+    piece = board[pos[0]][pos[1]].piece
+    result: set[tuple[int, int]] = set()
+    if not piece:
+        return None
+    if piece.owner != viewer:
+        return None
+    if piece.type != chess_defs.PieceType.ARCHER:
+        return None
+    else:
+        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+        steps = 7
+        for direction in directions:
+            end_pos = pos
+            for _ in range(steps):
+                end_pos = (end_pos[0] + direction[0], end_pos[1] + direction[1])
+                if end_pos[0] < 0 or end_pos[0] > 16 or end_pos[1] < 0 or end_pos[1] > 16:
+                    break  # 目标不在棋盘内
+                if board[end_pos[0]][end_pos[1]].terrain==chess_defs.Terrain.GRASS:
+                    continue
+                end_piece = board[end_pos[0]][end_pos[1]].piece
+                if end_piece is not None:
+                    if end_piece.owner != viewer:
+                        result.add(end_pos)
+                    break
+
+        return result
