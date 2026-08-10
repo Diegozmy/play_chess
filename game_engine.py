@@ -353,22 +353,28 @@ def apply_action(state:GameState,action:Action) -> GameState:
         )
         if not action.target or valid_paths is None or action.target not in valid_paths:
             raise ValueError("Invalid move path")
-        new_block=replace(block,piece=None)
-        board=replace_in_2d(state.board,action.start[0],action.start[1],new_block)
+        board = state.board
         should_exit = False
         end_pos=action.start
+        new_trap_count = state.trap_count.copy()
+        enemy_player = (
+            chess_defs.Owner.B
+            if state.current_player == chess_defs.Owner.A
+            else chess_defs.Owner.A
+        )
         for i in action.target:
             end_pos = i
             has_trap=(state.board[i[0]][i[1]].trap_owner != chess_defs.TrapOwner.NONE and not
             (state.board[i[0]][i[1]].trap_owner & chess_defs.TrapOwner(state.current_player.value)))
             if has_trap:
                 should_exit = True
+                new_trap_count[enemy_player] = max(0, new_trap_count[enemy_player] - 1)
                 new_block3 = replace(board[i[0]][i[1]],
                                      trap_owner=state.board[i[0]][i[1]].trap_owner & chess_defs.TrapOwner(
                                          state.current_player.value))
                 board = replace_in_2d(board, i[0], i[1], new_block3)
-                new_piece = replace(board[action.start[0]][action.start[1]].piece, viewed=True)
-                new_block4 = replace(board[action.start[0]][action.start[1]], piece=new_piece)
+                new_piece = replace(block.piece, viewed=True)
+                new_block4 = replace(block, piece=new_piece)
                 board = replace_in_2d(board, action.start[0], action.start[1], new_block4)
             elif should_exit:
                 break
@@ -378,9 +384,11 @@ def apply_action(state:GameState,action:Action) -> GameState:
             new_state1=replace(state, died_pieces=new_died_pieces)
         else:
             new_state1=state
-        new_block2 = replace(board[end_pos[0]][end_pos[1]], piece=block.piece)
+        new_block2 = replace(board[end_pos[0]][end_pos[1]], piece=board[action.start[0]][action.start[1]].piece)
         board = replace_in_2d(board, end_pos[0], end_pos[1], new_block2)
-        new_game_status=replace(new_state1,board=board)
+        new_block = replace(block, piece=None)
+        board = replace_in_2d(board, action.start[0], action.start[1], new_block)
+        new_game_status=replace(new_state1,board=board,trap_count=new_trap_count)
         return new_game_status
     else:
         # 处理技能或未知动作
