@@ -351,18 +351,34 @@ def apply_action(state:GameState,action:Action) -> GameState:
         valid_paths = get_valid_moves(
             state.board, action.start, state.current_player, state.now_round
         )
-        if valid_paths is None or action.target not in valid_paths:
+        if not action.target or valid_paths is None or action.target not in valid_paths:
             raise ValueError("Invalid move path")
         new_block=replace(block,piece=None)
         board=replace_in_2d(state.board,action.start[0],action.start[1],new_block)
-        end_pos=action.target[-1]
-        if state.board[end_pos[0]][end_pos[1]].piece is not None:
+        should_exit = False
+        end_pos=action.start
+        for i in action.target:
+            end_pos = i
+            has_trap=(state.board[i[0]][i[1]].trap_owner != chess_defs.TrapOwner.NONE and not
+            (state.board[i[0]][i[1]].trap_owner & chess_defs.TrapOwner(state.current_player.value)))
+            if has_trap:
+                should_exit = True
+                new_block3 = replace(board[i[0]][i[1]],
+                                     trap_owner=state.board[i[0]][i[1]].trap_owner & chess_defs.TrapOwner(
+                                         state.current_player.value))
+                board = replace_in_2d(board, i[0], i[1], new_block3)
+                new_piece = replace(board[action.start[0]][action.start[1]].piece, viewed=True)
+                new_block4 = replace(board[action.start[0]][action.start[1]], piece=new_piece)
+                board = replace_in_2d(board, action.start[0], action.start[1], new_block4)
+            elif should_exit:
+                break
+        if board[end_pos[0]][end_pos[1]].piece is not None:
             new_died_pieces = {owner: list(pieces) for owner, pieces in state.died_pieces.items()}
-            new_died_pieces[state.board[end_pos[0]][end_pos[1]].piece.owner].append(state.board[end_pos[0]][end_pos[1]].piece)
+            new_died_pieces[board[end_pos[0]][end_pos[1]].piece.owner].append(board[end_pos[0]][end_pos[1]].piece)
             new_state1=replace(state, died_pieces=new_died_pieces)
         else:
             new_state1=state
-        new_block2 = replace(state.board[end_pos[0]][end_pos[1]], piece=block.piece)
+        new_block2 = replace(board[end_pos[0]][end_pos[1]], piece=block.piece)
         board = replace_in_2d(board, end_pos[0], end_pos[1], new_block2)
         new_game_status=replace(new_state1,board=board)
         return new_game_status
