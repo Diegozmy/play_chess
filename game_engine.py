@@ -279,3 +279,29 @@ def get_mage_targets(board:list[list[chess_defs.Block]],pos:tuple[int,int],viewe
                     break
         final_result.append(result)
     return final_result
+
+#获取猎手的合法目标
+def get_hunter_targets(board:list[list[chess_defs.Block]],pos:tuple[int,int],viewer:chess_defs.Owner) -> set[tuple[int,int]] | None:
+    piece = board[pos[0]][pos[1]].piece
+    result: set[tuple[int, int]] = set()
+    if not piece:
+        return None
+    if piece.owner != viewer:
+        return None
+    if piece.type != chess_defs.PieceType.HUNTER:
+        return None
+    else:
+        directions = [(0,1),(-1,1),(-1,0),(-1,-1),(0,-1),(1,-1),(1,0),(1,1),(0,0)]
+        for direction in directions:
+            end_pos = pos
+            end_pos = (end_pos[0] + direction[0], end_pos[1] + direction[1])
+            if end_pos[0] < 0 or end_pos[0] > 16 or end_pos[1] < 0 or end_pos[1] > 16:
+                continue  # 目标不在棋盘内
+            end_piece = board[end_pos[0]][end_pos[1]].piece
+            if end_piece is not None and direction!=(0,0):
+                continue
+            if board[end_pos[0]][end_pos[1]].trap_owner & chess_defs.TrapOwner(viewer.value):
+                continue
+            result.add(end_pos)
+        return result
+
