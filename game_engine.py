@@ -36,9 +36,9 @@ def init_board()->list[list[chess_defs.Block]]:
 
 #获取可行移动
 directions=[(0,1),(-1,1),(-1,0),(-1,-1),(0,-1),(1,-1),(1,0),(1,1)]
-def get_valid_moves(board:list[list[chess_defs.Block]],pos:tuple[int,int],viewer:chess_defs.Owner,now_round:int) -> set[tuple[int,int]] | None:
+def get_valid_moves(board:list[list[chess_defs.Block]],pos:tuple[int,int],viewer:chess_defs.Owner,now_round:int) -> list[list[tuple[int,int]]] | None:
     piece=board[pos[0]][pos[1]].piece
-    result: set[tuple[int, int]] = set()
+    result: list[list[tuple[int, int]]] = list()
     if not piece:
         return None
     if piece.owner != viewer:
@@ -47,6 +47,7 @@ def get_valid_moves(board:list[list[chess_defs.Block]],pos:tuple[int,int],viewer
         steps=9
         for direction in directions:
             end_pos=pos
+            path=[]
             for _ in range(steps):
                 end_pos = (end_pos[0] + direction[0], end_pos[1] + direction[1])
                 if end_pos[0] < 0 or end_pos[0] > 16 or end_pos[1] < 0 or end_pos[1] > 16:
@@ -60,9 +61,11 @@ def get_valid_moves(board:list[list[chess_defs.Block]],pos:tuple[int,int],viewer
                     if end_piece.owner == viewer:
                         break # 不能吃自己的棋子
                     else:
-                        result.add(end_pos) # 吃掉对方棋子
+                        path.append(end_pos) # 吃掉对方棋子
+                        result.append(path.copy())
                         break # 然后停下
-                result.add(end_pos)
+                path.append(end_pos)
+                result.append(path.copy())
         return result
 
     if piece.type == chess_defs.PieceType.ASSASSIN:
@@ -70,11 +73,11 @@ def get_valid_moves(board:list[list[chess_defs.Block]],pos:tuple[int,int],viewer
         q = deque()
         visited = set()
         init_state = (pos, steps, piece.stealth)  # (当前位置, 剩余步数, 剩余潜伏值)
-        q.append(init_state)
+        q.append((*init_state,[]))
         visited.add(init_state)
 
         while q:
-            end_pos, remain_moves, remain_stealth = q.popleft()
+            end_pos, remain_moves, remain_stealth, path = q.popleft()
 
             if remain_moves == 0 and remain_stealth == 0:
                 continue
@@ -97,15 +100,18 @@ def get_valid_moves(board:list[list[chess_defs.Block]],pos:tuple[int,int],viewer
                 target_piece = target_block.piece
                 if target_piece is not None and target_piece.owner == viewer:
                     continue
+
+                new_path=path+[new_pos]
+
                 if target_piece is not None and target_piece.owner != viewer:
-                    result.add(new_pos)
+                    result.append(new_path)
                     continue
 
                 if (remain_moves > 0
                         or (board[end_pos[0]][end_pos[1]].terrain == chess_defs.Terrain.GRASS
                         and remain_stealth > 0)
                     ):
-                    result.add(new_pos)
+                    result.append(new_path)
                 else:
                     continue
 
@@ -113,13 +119,13 @@ def get_valid_moves(board:list[list[chess_defs.Block]],pos:tuple[int,int],viewer
                     new_state = (new_pos, remain_moves - 1, remain_stealth)
                     if new_state not in visited:
                         visited.add(new_state)
-                        q.append(new_state)
+                        q.append((*new_state,new_path))
 
                 if board[end_pos[0]][end_pos[1]].terrain == chess_defs.Terrain.GRASS and remain_stealth > 0:
                     new_state = (new_pos, remain_moves, remain_stealth - 1)
                     if new_state not in visited:
                         visited.add(new_state)
-                        q.append(new_state)
+                        q.append((*new_state,new_path))
 
         return result
 
@@ -133,11 +139,11 @@ def get_valid_moves(board:list[list[chess_defs.Block]],pos:tuple[int,int],viewer
         q = deque()
         visited = set()
         init_state = (pos, steps)  # (当前位置, 剩余步数, 剩余潜伏值)
-        q.append(init_state)
+        q.append((*init_state,[]))
         visited.add(init_state)
 
         while q:
-            end_pos, remain_moves= q.popleft()
+            end_pos, remain_moves, path = q.popleft()
 
             if remain_moves == 0:
                 continue
@@ -158,20 +164,19 @@ def get_valid_moves(board:list[list[chess_defs.Block]],pos:tuple[int,int],viewer
                 target_piece = target_block.piece
                 if target_piece is not None and target_piece.owner == viewer:
                     continue
+
+                new_path=path+[new_pos]
+
                 if target_piece is not None and target_piece.owner != viewer:
-                    result.add(new_pos)
+                    result.append(new_path)
                     continue
 
-                if remain_moves > 0:
-                    result.add(new_pos)
-                else:
-                    continue
+                result.append(new_path)
 
-                if remain_moves > 0:
-                    new_state = (new_pos, remain_moves - 1)
-                    if new_state not in visited:
-                        visited.add(new_state)
-                        q.append(new_state)
+                new_state = (new_pos, remain_moves - 1)
+                if new_state not in visited:
+                    visited.add(new_state)
+                    q.append((*new_state,new_path))
 
         return result
 
@@ -184,11 +189,11 @@ def get_valid_moves(board:list[list[chess_defs.Block]],pos:tuple[int,int],viewer
         q = deque()
         visited = set()
         init_state = (pos, steps)  # (当前位置, 剩余步数, 剩余潜伏值)
-        q.append(init_state)
+        q.append((*init_state,[]))
         visited.add(init_state)
 
         while q:
-            end_pos, remain_moves= q.popleft()
+            end_pos, remain_moves, path= q.popleft()
 
             if remain_moves == 0:
                 continue
@@ -210,16 +215,13 @@ def get_valid_moves(board:list[list[chess_defs.Block]],pos:tuple[int,int],viewer
                 if target_piece is not None:
                     continue
 
-                if remain_moves > 0:
-                    result.add(new_pos)
-                else:
-                    continue
+                new_path = path + [new_pos]
+                result.append(new_path)
 
-                if remain_moves > 0:
-                    new_state = (new_pos, remain_moves - 1)
-                    if new_state not in visited:
-                        visited.add(new_state)
-                        q.append(new_state)
+                new_state = (new_pos, remain_moves - 1)
+                if new_state not in visited:
+                    visited.add(new_state)
+                    q.append((*new_state,new_path))
 
         return result
 
@@ -277,7 +279,9 @@ def get_mage_targets(board:list[list[chess_defs.Block]],pos:tuple[int,int],viewe
                 result.add(end_pos)
                 if end_piece.type==chess_defs.PieceType.SHIELD:
                     break
-        final_result.append(result)
+        if result:
+            final_result.append(result)
+
     return final_result
 
 #获取猎手的合法目标
