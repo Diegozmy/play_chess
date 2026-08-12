@@ -18,7 +18,7 @@ class PieceType(Enum):
     UNKNOWN = 8
 
 # 3. 定义棋子结构
-@dataclass(slots=True, frozen=True, kw_only=True)
+@dataclass(slots=True, kw_only=True)
 class Piece:
     owner: Owner
     type: PieceType
@@ -39,7 +39,7 @@ class TrapOwner(IntFlag):
     B = 2
 
 #6. 定义格子
-@dataclass(slots=True, frozen=True, kw_only=True)
+@dataclass(slots=True, kw_only=True)
 class Block:
     terrain: Terrain
     piece: Piece | None
