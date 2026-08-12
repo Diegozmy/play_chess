@@ -13,6 +13,7 @@ class GameState:
     flag_capture_count: dict[chess_defs.Owner, int] = field(default_factory=lambda: {chess_defs.Owner.A: 0, chess_defs.Owner.B: 0})
     trap_count: dict[chess_defs.Owner, int] = field(default_factory=lambda: {chess_defs.Owner.A: 0, chess_defs.Owner.B: 0})
     died_pieces:dict[chess_defs.Owner, list[chess_defs.Piece]]=field(default_factory=lambda: {chess_defs.Owner.A: [], chess_defs.Owner.B: []})
+    winier:list[chess_defs.Owner]
 
 #定义动作类型
 class ActionType(Enum):
@@ -29,6 +30,10 @@ class Action:
 #添加坐标转换
 def pos_to_idx(pos:tuple[int, int])->int:
     return pos[0] * 17 + pos[1]
+
+#添加切换玩家
+def switch_player(current_player:chess_defs.Owner)->chess_defs.Owner:
+    return chess_defs.Owner.B if current_player == chess_defs.Owner.A else chess_defs.Owner.A
 
 #初始化棋盘
 def init_board()->list[chess_defs.Block]:
@@ -340,8 +345,29 @@ def get_hunter_targets(board:list[chess_defs.Block],pos:tuple[int,int],viewer:ch
 
 #施加动作
 def apply_action(state:GameState,action:Action):
+    enemy_player=switch_player(state.current_player)
     if action.type==ActionType.MOVE:
         should_break=False
+        end_pos=action.target[-1]
         for i in action.target:
+            if should_break:
+                end_pos=i
+                break
+            if state.board[pos_to_idx(i)].trap_owner.is_enemy_trap(state.current_player):
+                should_break=True
+                state.board[pos_to_idx(i)].trap_owner=(
+                    state.board[pos_to_idx(i)].trap_owner.resolve_trigger(state.current_player))
+                state.trap_count[enemy_player]=(
+                    max(0, state.trap_count[enemy_player] - 1))
+        if state.board[pos_to_idx(end_pos)].piece is not None:
+            state.board[pos_to_idx(end_pos)].piece.viewed=True
+            state.died_pieces[state.board[pos_to_idx(end_pos)].piece.owner].append(state.board[pos_to_idx(end_pos)].piece)
+            if state.board[pos_to_idx(end_pos)].piece.type==chess_defs.PieceType.COMMANDER:
+                state.winier.append(switch_player(state.board[pos_to_idx(end_pos)].piece.owner))
+        state.board[pos_to_idx(end_pos)].piece=state.board[pos_to_idx(action.start)].piece
+        if should_break:
+            state.board[pos_to_idx(end_pos)].piece.viewed = True
+        state.board[pos_to_idx(action.start)].piece=None
+        state.current_player=enemy_player
 
     raise ValueError("WRONG MOVE TYPE")
