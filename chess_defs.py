@@ -32,11 +32,28 @@ class Terrain(Enum):
     RIVER = 2
     BRIDGE=3
 
-#5.定义陷阱归属
+#5.定义陷阱归属于操作
 class TrapOwner(IntFlag):
     NONE = 0
     A = 1
     B = 2
+
+    @staticmethod
+    def from_owner(owner: Owner) -> "TrapOwner":
+        return TrapOwner(owner.value)
+
+    def is_empty(self) -> bool:
+        return self == TrapOwner.NONE
+
+    def belongs_to(self, owner: Owner) -> bool:
+        return bool(self & TrapOwner.from_owner(owner))
+
+    def is_enemy_trap(self, viewer: Owner) -> bool:
+        return not self.is_empty() and not self.belongs_to(viewer)
+
+    def resolve_trigger(self, viewer: Owner) -> "TrapOwner":
+        return self & TrapOwner.from_owner(viewer)
+
 
 #6. 定义格子
 @dataclass(slots=True, kw_only=True)

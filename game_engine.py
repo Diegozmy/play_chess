@@ -30,8 +30,6 @@ class Action:
 def pos_to_idx(pos:tuple[int, int])->int:
     return pos[0] * 17 + pos[1]
 
-
-
 #初始化棋盘
 def init_board()->list[chess_defs.Block]:
     # 地形数据
@@ -341,3 +339,9 @@ def get_hunter_targets(board:list[chess_defs.Block],pos:tuple[int,int],viewer:ch
         return result
 
 #施加动作
+def apply_action(state:GameState,action:Action):
+    if action.type==ActionType.MOVE:
+        should_break=False
+        for i in action.target:
+
+    raise ValueError("WRONG MOVE TYPE")
