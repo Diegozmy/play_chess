@@ -54,6 +54,9 @@ class TrapOwner(IntFlag):
     def resolve_trigger(self, viewer: Owner) -> "TrapOwner":
         return self & TrapOwner.from_owner(viewer)
 
+    def place_trap(self, owner: Owner) -> "TrapOwner":
+        return self | TrapOwner.from_owner(owner)
+
 
 #6. 定义格子
 @dataclass(slots=True, kw_only=True)

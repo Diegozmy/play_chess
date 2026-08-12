@@ -368,6 +368,35 @@ def apply_action(state:GameState,action:Action):
         if should_break:
             state.board[pos_to_idx(end_pos)].piece.viewed = True
         state.board[pos_to_idx(action.start)].piece=None
-        state.current_player=enemy_player
 
-    raise ValueError("WRONG MOVE TYPE")
+    if action.type == ActionType.SKILL:
+        start_piece=state.board[pos_to_idx(action.start)].piece
+
+        if start_piece.type == chess_defs.PieceType.ARCHER:
+            end_pos=action.target[0]
+            state.board[pos_to_idx(end_pos)].piece.viewed = True
+            state.died_pieces[state.board[pos_to_idx(end_pos)].piece.owner].append(
+                state.board[pos_to_idx(end_pos)].piece)
+            if state.board[pos_to_idx(end_pos)].piece.type == chess_defs.PieceType.COMMANDER:
+                state.winner.append(switch_player(state.board[pos_to_idx(end_pos)].piece.owner))
+            state.board[pos_to_idx(end_pos)].piece = None
+
+        elif start_piece.type == chess_defs.PieceType.MAGE:
+            for end_pos in action.target:
+                state.board[pos_to_idx(end_pos)].piece.viewed = True
+                state.died_pieces[state.board[pos_to_idx(end_pos)].piece.owner].append(
+                    state.board[pos_to_idx(end_pos)].piece)
+                if state.board[pos_to_idx(end_pos)].piece.type == chess_defs.PieceType.COMMANDER:
+                    state.winner.append(switch_player(state.board[pos_to_idx(end_pos)].piece.owner))
+                state.board[pos_to_idx(end_pos)].piece = None
+
+        elif start_piece.type == chess_defs.PieceType.HUNTER:
+            state.board[pos_to_idx(action.target[0])].trap_owner=(
+                state.board[pos_to_idx(action.target[0])].trap_owner.place_trap(state.current_player))
+            state.trap_count[state.current_player]+=1
+
+        else:
+            return None
+
+    state.current_player = enemy_player
+    return None
