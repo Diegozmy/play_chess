@@ -13,7 +13,7 @@ class GameState:
     flag_capture_count: dict[chess_defs.Owner, int] = field(default_factory=lambda: {chess_defs.Owner.A: 0, chess_defs.Owner.B: 0})
     trap_count: dict[chess_defs.Owner, int] = field(default_factory=lambda: {chess_defs.Owner.A: 0, chess_defs.Owner.B: 0})
     died_pieces:dict[chess_defs.Owner, list[chess_defs.Piece]]=field(default_factory=lambda: {chess_defs.Owner.A: [], chess_defs.Owner.B: []})
-    winier:list[chess_defs.Owner]
+    winner:list[chess_defs.Owner]
 
 #定义动作类型
 class ActionType(Enum):
@@ -363,7 +363,7 @@ def apply_action(state:GameState,action:Action):
             state.board[pos_to_idx(end_pos)].piece.viewed=True
             state.died_pieces[state.board[pos_to_idx(end_pos)].piece.owner].append(state.board[pos_to_idx(end_pos)].piece)
             if state.board[pos_to_idx(end_pos)].piece.type==chess_defs.PieceType.COMMANDER:
-                state.winier.append(switch_player(state.board[pos_to_idx(end_pos)].piece.owner))
+                state.winner.append(switch_player(state.board[pos_to_idx(end_pos)].piece.owner))
         state.board[pos_to_idx(end_pos)].piece=state.board[pos_to_idx(action.start)].piece
         if should_break:
             state.board[pos_to_idx(end_pos)].piece.viewed = True
