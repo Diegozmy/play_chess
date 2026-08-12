@@ -205,8 +205,8 @@ def get_valid_moves(board:list[chess_defs.Block],pos:tuple[int,int],viewer:chess
                 result.append(new_path)
 
                 new_state = (new_pos, remain_moves - 1)
-                if new_state not in visited:
-                    visited.add(pos)
+                if new_pos not in visited:
+                    visited.add(new_pos)
                     q.append((*new_state,new_path))
 
         return result
@@ -250,8 +250,8 @@ def get_valid_moves(board:list[chess_defs.Block],pos:tuple[int,int],viewer:chess
                 result.append(new_path)
 
                 new_state = (new_pos, remain_moves - 1)
-                if new_state not in visited:
-                    visited.add(pos)
+                if new_pos not in visited:
+                    visited.add(new_pos)
                     q.append((*new_state,new_path))
 
         return result

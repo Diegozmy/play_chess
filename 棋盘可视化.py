@@ -49,7 +49,7 @@ for i in range(3):
         if chess_place[i][j] != chess_defs.PieceType.ASSASSIN:
             stealth=None
         else:
-            stealth=10
+            stealth=2
         board[game_engine.pos_to_idx((j+7,i))]=chess_defs.Block(terrain=chess_defs.Terrain.PLAIN,
                                        piece=chess_defs.Piece(owner=chess_defs.Owner.A,
                                                               type=chess_place[i][j],
@@ -65,7 +65,7 @@ for i in range(3):
         if chess_place[i][j] != chess_defs.PieceType.ASSASSIN:
             stealth=None
         else:
-            stealth=10
+            stealth=2
         board[game_engine.pos_to_idx((j+7,i+14))]=chess_defs.Block(terrain=chess_defs.Terrain.PLAIN,
                                        piece=chess_defs.Piece(owner=chess_defs.Owner.B,
                                                               type=chess_place[2-i][j],
@@ -79,7 +79,7 @@ board[game_engine.pos_to_idx((8,10))]=chess_defs.Block(terrain=chess_defs.Terrai
                                        piece=chess_defs.Piece(owner=chess_defs.Owner.A,
                                                               type=chess_defs.PieceType.COMMANDER,
                                                               viewed=False,
-                                                              stealth=4
+                                                              stealth=None
                                                               ),
                                        trap_owner=chess_defs.TrapOwner.NONE
                                        )
