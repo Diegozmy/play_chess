@@ -49,7 +49,7 @@ class TrapOwner(IntFlag):
         return bool(self & TrapOwner.from_owner(owner))
 
     def is_enemy_trap(self, viewer: Owner) -> bool:
-        return not self.is_empty() and not self.belongs_to(viewer)
+        return bool(self & ~TrapOwner.from_owner(viewer))
 
     def resolve_trigger(self, viewer: Owner) -> "TrapOwner":
         return self & TrapOwner.from_owner(viewer)

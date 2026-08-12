@@ -14,6 +14,7 @@ class GameState:
     trap_count: dict[chess_defs.Owner, int] = field(default_factory=lambda: {chess_defs.Owner.A: 0, chess_defs.Owner.B: 0})
     died_pieces:dict[chess_defs.Owner, list[chess_defs.Piece]]=field(default_factory=lambda: {chess_defs.Owner.A: [], chess_defs.Owner.B: []})
     winner:list[chess_defs.Owner]
+    assassins: dict[chess_defs.Owner,list[chess_defs.Piece]]
 
 #定义动作类型
 class ActionType(Enum):
@@ -26,6 +27,7 @@ class Action:
     type: ActionType
     start: tuple[int, int]
     target:list[tuple[int, int]]
+    use_stealth: int
 
 #添加坐标转换
 def pos_to_idx(pos:tuple[int, int])->int:
@@ -347,21 +349,30 @@ def get_hunter_targets(board:list[chess_defs.Block],pos:tuple[int,int],viewer:ch
 def apply_action(state:GameState,action:Action):
     enemy_player=switch_player(state.current_player)
     if action.type==ActionType.MOVE:
+        used_stealth=0
         should_break=False
         end_pos=action.target[-1]
         for i in action.target:
-            if should_break:
-                end_pos=i
-                break
+            last_should_break=should_break
+            if action.use_stealth-used_stealth>0 and state.board[pos_to_idx(i)].terrain==chess_defs.Terrain.GRASS:
+                used_stealth+=1
             if state.board[pos_to_idx(i)].trap_owner.is_enemy_trap(state.current_player):
                 should_break=True
                 state.board[pos_to_idx(i)].trap_owner=(
                     state.board[pos_to_idx(i)].trap_owner.resolve_trigger(state.current_player))
                 state.trap_count[enemy_player]=(
                     max(0, state.trap_count[enemy_player] - 1))
+            if last_should_break:
+                end_pos = i
+                break
+
         if state.board[pos_to_idx(end_pos)].piece is not None:
             state.board[pos_to_idx(end_pos)].piece.viewed=True
             state.died_pieces[state.board[pos_to_idx(end_pos)].piece.owner].append(state.board[pos_to_idx(end_pos)].piece)
+
+            if state.board[pos_to_idx(end_pos)].piece in state.assassins[state.board[pos_to_idx(end_pos)].piece.owner]:
+                state.assassins[state.board[pos_to_idx(end_pos)].piece.owner].remove(state.board[pos_to_idx(end_pos)].piece)
+
             if state.board[pos_to_idx(end_pos)].piece.type==chess_defs.PieceType.COMMANDER:
                 state.winner.append(switch_player(state.board[pos_to_idx(end_pos)].piece.owner))
         state.board[pos_to_idx(end_pos)].piece=state.board[pos_to_idx(action.start)].piece
@@ -369,7 +380,13 @@ def apply_action(state:GameState,action:Action):
             state.board[pos_to_idx(end_pos)].piece.viewed = True
         state.board[pos_to_idx(action.start)].piece=None
 
-    if action.type == ActionType.SKILL:
+        for i in state.assassins[state.current_player]:
+            if i != state.board[pos_to_idx(end_pos)].piece:
+                i.stealth = min(6, i.stealth + 1)
+            else:
+                i.stealth-=used_stealth
+
+    elif action.type == ActionType.SKILL:
         start_piece=state.board[pos_to_idx(action.start)].piece
 
         if start_piece.type == chess_defs.PieceType.ARCHER:
@@ -379,6 +396,9 @@ def apply_action(state:GameState,action:Action):
                 state.board[pos_to_idx(end_pos)].piece)
             if state.board[pos_to_idx(end_pos)].piece.type == chess_defs.PieceType.COMMANDER:
                 state.winner.append(switch_player(state.board[pos_to_idx(end_pos)].piece.owner))
+
+            if state.board[pos_to_idx(end_pos)].piece in state.assassins[state.board[pos_to_idx(end_pos)].piece.owner]:
+                state.assassins[state.board[pos_to_idx(end_pos)].piece.owner].remove(state.board[pos_to_idx(end_pos)].piece)
             state.board[pos_to_idx(end_pos)].piece = None
 
         elif start_piece.type == chess_defs.PieceType.MAGE:
@@ -388,15 +408,27 @@ def apply_action(state:GameState,action:Action):
                     state.board[pos_to_idx(end_pos)].piece)
                 if state.board[pos_to_idx(end_pos)].piece.type == chess_defs.PieceType.COMMANDER:
                     state.winner.append(switch_player(state.board[pos_to_idx(end_pos)].piece.owner))
+
+                if state.board[pos_to_idx(end_pos)].piece in state.assassins[
+                    state.board[pos_to_idx(end_pos)].piece.owner]:
+                    state.assassins[state.board[pos_to_idx(end_pos)].piece.owner].remove(
+                        state.board[pos_to_idx(end_pos)].piece)
+
                 state.board[pos_to_idx(end_pos)].piece = None
 
         elif start_piece.type == chess_defs.PieceType.HUNTER:
             state.board[pos_to_idx(action.target[0])].trap_owner=(
                 state.board[pos_to_idx(action.target[0])].trap_owner.place_trap(state.current_player))
             state.trap_count[state.current_player]+=1
-
         else:
-            return None
+            raise ValueError(f"{start_piece.type} don't have any skill!")
+
+        for i in state.assassins[state.current_player]:
+            i.stealth = min(6, i.stealth + 1)
+
+    else:
+        raise ValueError("Unsupported action type!")
 
     state.current_player = enemy_player
-    return None
+    state.now_round += 1
+
